@@ -1,0 +1,34 @@
+name: Release Readiness Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      reference_tag:
+        description: 'Git tag being prepared for release (e.g. v20.11.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release-readiness:
+    name: Release Readiness Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Report the release reference tag
+        env:
+          REFERENCE_TAG: ${{ inputs.reference_tag }}
+        run: |
+          echo "Reference tag under review: ${REFERENCE_TAG}"
+
+      - name: Fail if RELEASE_CHECKLIST.md is missing
+        run: |
+          if [ ! -f RELEASE_CHECKLIST.md ]; then
+            echo "::error::RELEASE_CHECKLIST.md is missing from the repository root. Publishing a release without the checklist is not allowed."
+            exit 1
+          fi
+          echo "RELEASE_CHECKLIST.md present at repository root."
